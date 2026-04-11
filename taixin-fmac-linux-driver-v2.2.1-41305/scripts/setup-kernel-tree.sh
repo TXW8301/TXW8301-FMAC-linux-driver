@@ -163,17 +163,57 @@ for cmd in curl tar make; do
     fi
 done
 
+# ─── Cross-compiler auto-detect / install hints ─────────────────────────────
+
+suggest_toolchain_install() {
+    local arch="$1"
+    case "$arch" in
+        arm64|aarch64)
+            echo "         Try: sudo apt install gcc-aarch64-linux-gnu"
+            echo "         Then use prefix: aarch64-linux-gnu-"
+            ;;
+        arm)
+            echo "         Try: sudo apt install gcc-arm-linux-gnueabihf"
+            echo "         Then use prefix: arm-linux-gnueabihf-"
+            ;;
+        mips|mipsel)
+            echo "         Try: sudo apt install gcc-mipsel-linux-gnu"
+            echo "         Then use prefix: mipsel-linux-gnu-"
+            ;;
+        riscv|riscv64)
+            echo "         Try: sudo apt install gcc-riscv64-linux-gnu"
+            echo "         Then use prefix: riscv64-linux-gnu-"
+            ;;
+        *)
+            echo "         Install a cross-compiler for arch '$arch' and pass the prefix."
+            ;;
+    esac
+}
+
+# If no cross-compile prefix given, try to auto-detect from arch
+if [[ -z "$CROSS_COMPILE" && "$ARCH" != "$(uname -m | sed 's/x86_64/x86/')" ]]; then
+    case "$ARCH" in
+        arm64) CROSS_COMPILE="aarch64-linux-gnu-" ;;
+        arm)   CROSS_COMPILE="arm-linux-gnueabihf-" ;;
+        mips)  CROSS_COMPILE="mipsel-linux-gnu-" ;;
+    esac
+    if [[ -n "$CROSS_COMPILE" ]]; then
+        echo "━━━ Auto-detected cross-compiler prefix: ${CROSS_COMPILE}"
+    fi
+fi
+
 if [[ -n "$CROSS_COMPILE" ]]; then
     if ! command -v "${CROSS_COMPILE}gcc" &>/dev/null && [[ ! -x "${CROSS_COMPILE}gcc" ]]; then
-        echo "Warning: ${CROSS_COMPILE}gcc not found. modules_prepare may fail."
-        echo "         Install the toolchain or pass the correct prefix."
+        echo "Error: ${CROSS_COMPILE}gcc not found."
+        suggest_toolchain_install "$ARCH"
+        exit 1
     fi
 fi
 
 # ─── Check if already prepared ────────────────────────────────────────────────
 
 if [[ -d "$TARGET_DIR" ]]; then
-    if [[ -f "$TARGET_DIR/scripts/basic/fixdep" ]] || [[ -f "$TARGET_DIR/Module.symvers" ]]; then
+    if [[ -f "$TARGET_DIR/.config" ]] && [[ -f "$TARGET_DIR/include/generated/autoconf.h" ]]; then
         echo "Kernel tree already prepared at: $TARGET_DIR"
         echo "  Use as LINUX_KERNEL_PATH in build-matrix-local.sh"
         echo ""
@@ -181,7 +221,7 @@ if [[ -d "$TARGET_DIR" ]]; then
         echo "    rm -rf $TARGET_DIR"
         exit 0
     else
-        echo "Directory exists but tree not prepared. Continuing from where we left off..."
+        echo "Directory exists but tree not fully prepared. Continuing from where we left off..."
     fi
 fi
 

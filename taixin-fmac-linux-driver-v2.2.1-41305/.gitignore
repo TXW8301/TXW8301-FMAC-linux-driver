@@ -15,6 +15,9 @@ modules.order
 # Build logs
 logs/
 
+# Downloaded kernel trees
+kernel-trees/
+
 # Editor
 *.swp
 *~

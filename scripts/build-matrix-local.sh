@@ -32,8 +32,8 @@ LOG_DIR="$DRIVER_DIR/logs"
 #
 TARGETS=(
     "6.1.141-arm64|${SCRIPT_DIR}/../kernel-trees/6.1.141-arm64|arm64|aarch64-linux-gnu-|fmac_sdio"
-    "4.9.84-arm|/EDIT/path/to/kernel-4.9.84|arm|/EDIT/path/to/arm-openipc-linux-musleabi-|fmac_sdio"
-    "5.10.61-arm|/EDIT/path/to/kernel-5.10.61|arm|/EDIT/path/to/arm-openipc-linux-musleabi-|fmac_sdio"
+    "4.9.84-arm|${SCRIPT_DIR}/../kernel-trees/4.9.84-arm|arm|arm-linux-gnueabi-|fmac_sdio"
+    "5.10.61-arm|${SCRIPT_DIR}/../kernel-trees/5.10.61-arm|arm|arm-linux-gnueabi-|fmac_sdio"
     # "6.6.x-arm64|/EDIT/path/to/linux-6.6.x|arm64|/EDIT/path/to/aarch64-linux-gnu-|fmac"
     # "6.12.x-arm64|/EDIT/path/to/linux-6.12.x|arm64|/EDIT/path/to/aarch64-linux-gnu-|fmac"
 )

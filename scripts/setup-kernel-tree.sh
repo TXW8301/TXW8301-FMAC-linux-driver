@@ -173,8 +173,9 @@ suggest_toolchain_install() {
             echo "         Then use prefix: aarch64-linux-gnu-"
             ;;
         arm)
-            echo "         Try: sudo apt install gcc-arm-linux-gnueabihf"
-            echo "         Then use prefix: arm-linux-gnueabihf-"
+            echo "         Try: sudo apt install gcc-arm-linux-gnueabi"
+            echo "         Then use prefix: arm-linux-gnueabi-"
+            echo "         Note: prefer gnueabi (soft-float) over gnueabihf for old kernels"
             ;;
         mips|mipsel)
             echo "         Try: sudo apt install gcc-mipsel-linux-gnu"
@@ -191,10 +192,14 @@ suggest_toolchain_install() {
 }
 
 # If no cross-compile prefix given, try to auto-detect from arch
+# NOTE: For arm, prefer arm-linux-gnueabi- (soft-float) over gnueabihf-.
+# Old kernels (4.9) use cc-option to test -march=armv7-a; gnueabihf defaults
+# to -mfloat-abi=hard which makes that test fail, causing the kernel to fall
+# back to -march=armv5t and breaking ISB/DMB instructions.
 if [[ -z "$CROSS_COMPILE" && "$ARCH" != "$(uname -m | sed 's/x86_64/x86/')" ]]; then
     case "$ARCH" in
         arm64) CROSS_COMPILE="aarch64-linux-gnu-" ;;
-        arm)   CROSS_COMPILE="arm-linux-gnueabihf-" ;;
+        arm)   CROSS_COMPILE="arm-linux-gnueabi-" ;;
         mips)  CROSS_COMPILE="mipsel-linux-gnu-" ;;
     esac
     if [[ -n "$CROSS_COMPILE" ]]; then
@@ -275,8 +280,18 @@ fi
 
 # ─── Prepare for out-of-tree module builds ────────────────────────────────────
 
+# Old kernels (<=5.4) have a DTC yylloc multiple-definition bug with modern
+# host toolchains. Work around it with -z muldefs.
+MAJOR=${VERSION%%.*}
+MINOR=${VERSION#*.}; MINOR=${MINOR%%.*}
+HOSTLD_EXTRA=""
+if (( MAJOR < 5 || (MAJOR == 5 && MINOR <= 4) )); then
+    HOSTLD_EXTRA='HOSTLDFLAGS=-z muldefs'
+    echo "━━━ Note: old kernel (${VERSION}), adding HOSTLDFLAGS='-z muldefs' for DTC build"
+fi
+
 echo "━━━ Running modules_prepare..."
-make -C "$TARGET_DIR" "${MAKE_ARGS[@]}" modules_prepare
+make -C "$TARGET_DIR" "${MAKE_ARGS[@]}" $HOSTLD_EXTRA modules_prepare
 
 # ─── Verify ──────────────────────────────────────────────────────────────────
 

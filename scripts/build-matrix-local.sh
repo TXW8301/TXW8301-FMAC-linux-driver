@@ -31,7 +31,7 @@ LOG_DIR="$DRIVER_DIR/logs"
 #   5.10.61-arm    — OpenIPC Infinity6C (SSC378DE, etc.)
 #
 TARGETS=(
-    "6.1.141-arm64|/EDIT/path/to/kernel-6.1.141|arm64|/EDIT/path/to/aarch64-none-linux-gnu-|fmac_sdio"
+    "6.1.141-arm64|${SCRIPT_DIR}/../kernel-trees/6.1.141-arm64|arm64|aarch64-linux-gnu-|fmac_sdio"
     "4.9.84-arm|/EDIT/path/to/kernel-4.9.84|arm|/EDIT/path/to/arm-openipc-linux-musleabi-|fmac_sdio"
     "5.10.61-arm|/EDIT/path/to/kernel-5.10.61|arm|/EDIT/path/to/arm-openipc-linux-musleabi-|fmac_sdio"
     # "6.6.x-arm64|/EDIT/path/to/linux-6.6.x|arm64|/EDIT/path/to/aarch64-linux-gnu-|fmac"
@@ -58,6 +58,22 @@ list_targets() {
     done
 }
 
+suggest_toolchain_install() {
+    local arch="$1"
+    case "$arch" in
+        arm64|aarch64)
+            echo "         Try: sudo apt install gcc-aarch64-linux-gnu" ;;
+        arm)
+            echo "         Try: sudo apt install gcc-arm-linux-gnueabihf" ;;
+        mips|mipsel)
+            echo "         Try: sudo apt install gcc-mipsel-linux-gnu" ;;
+        riscv|riscv64)
+            echo "         Try: sudo apt install gcc-riscv64-linux-gnu" ;;
+        *)
+            echo "         Install a cross-compiler for arch '$arch'." ;;
+    esac
+}
+
 validate_target() {
     local name="$1" kpath="$2" arch="$3" cc="$4" target="$5"
     local errors=0
@@ -74,7 +90,9 @@ validate_target() {
         echo "  ERROR: CROSS_COMPILE not configured (still has /EDIT/ placeholder)"
         errors=1
     elif ! command -v "${cc}gcc" &>/dev/null && [[ ! -x "${cc}gcc" ]]; then
-        echo "  WARNING: ${cc}gcc not found in PATH or as absolute path"
+        echo "  ERROR: ${cc}gcc not found in PATH or as absolute path"
+        suggest_toolchain_install "$arch" "$cc"
+        errors=1
     fi
 
     return $errors

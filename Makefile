@@ -104,11 +104,11 @@ fmac_sdio: prepare
 	$(COMPILER)strip -g ko/hgicf.ko
 
 clean: 
-	@find ./ -name "*.o" | xargs rm -fv
-	@find ./ -name "*.ko" | xargs rm -fv
-	@find ./ -name "*.cmd" | xargs rm -fv
-	@find ./ -name "*.symvers" | xargs rm -fv
-	@find ./ -name "*.markers" | xargs rm -fv
-	@find ./ -name "*.order" | xargs rm -fv
-	@find ./ -name "*.mod.c" | xargs rm -fv
+	@find ./ -path ./kernel-trees -prune -o -name "*.o" -print | xargs rm -fv
+	@find ./ -path ./kernel-trees -prune -o -name "*.ko" -print | xargs rm -fv
+	@find ./ -path ./kernel-trees -prune -o -name "*.cmd" -print | xargs rm -fv
+	@find ./ -path ./kernel-trees -prune -o -name "*.symvers" -print | xargs rm -fv
+	@find ./ -path ./kernel-trees -prune -o -name "*.markers" -print | xargs rm -fv
+	@find ./ -path ./kernel-trees -prune -o -name "*.order" -print | xargs rm -fv
+	@find ./ -path ./kernel-trees -prune -o -name "*.mod.c" -print | xargs rm -fv
 	@rm -rf ko

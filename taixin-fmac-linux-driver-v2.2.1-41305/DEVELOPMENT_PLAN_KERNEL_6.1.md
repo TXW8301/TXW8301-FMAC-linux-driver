@@ -27,14 +27,17 @@ Track this matrix in the repo and use it for both local and CI builds.
 
 | Target | Kernel | Platform | Arch | Toolchain | Interface | SDK/FW Profile | Status |
 |---|---:|---|---|---|---|---|---|
-| RV1126B-P | 6.1.141 | Debian / Rockchip SDK | arm64 (or arm) | Rockchip cross-gcc | SDIO (primary), USB (optional) | FMAC fw v2.x.x.5 | planned |
-| SSC338Q | 4.9.84 | OpenIPC Infinity6E | arm | OpenIPC SDK gcc | SDIO (primary) | confirm 1.x/2.x | planned |
-| SSC378DE | 4.9.x | OpenIPC Infinity6C (likely) | arm | OpenIPC SDK gcc | SDIO (primary) | confirm 1.x/2.x | planned |
-| Generic LTS | 6.6.x | optional | arm64/arm | distro or cross | SDIO and/or USB | FMAC fw v2.x.x.5 | optional |
-| Generic LTS | 6.12.x | optional | arm64/arm | distro or cross | SDIO and/or USB | FMAC fw v2.x.x.5 | optional |
+| 6.1.141-arm64 | 6.1.141 | RV1126B-P / Rockchip SDK / Debian | arm64 | aarch64-none-linux-gnu- (10.3) | SDIO (primary), USB (optional) | FMAC fw v2.x.x.5 | planned |
+| 4.9.84-arm | 4.9.84 | OpenIPC Infinity6/6B0/6E + Goke (SSC338Q, SSC337DE, GK7205V200/V210/V300, etc.) | arm | arm-openipc-linux-musleabi- | SDIO (primary) | confirm 1.x/2.x | planned |
+| 5.10.61-arm | 5.10.61 | OpenIPC Infinity6C (SSC378DE, etc.) | arm | arm-openipc-linux-musleabi- | SDIO (primary) | confirm 1.x/2.x | planned |
+| Generic LTS | 6.6.x | any | arm64/arm | distro or cross | SDIO and/or USB | FMAC fw v2.x.x.5 | optional |
+| Generic LTS | 6.12.x | any | arm64/arm | distro or cross | SDIO and/or USB | FMAC fw v2.x.x.5 | optional |
 
 Notes:
-- Confirm exact kernel subversion for SSC378DE from running device (`uname -r`) and matching OpenIPC SDK branch.
+- Target names use kernel-version+arch; the same .ko works on any hardware running that kernel+arch.
+- RV1126B-P confirmed: `uname -r` = `6.1.141`, arch = arm64, toolchain = aarch64-none-linux-gnu-gcc 10.3.
+- OpenIPC Infinity6C (SSC378DE) uses kernel **5.10.61**, not 4.9.84.
+- Goke GK7205V200/V210/V300 share the same kernel (4.9.x) and toolchain as SigmaStar Infinity6 on OpenIPC — covered by the `4.9.84-arm` target.
 - Keep architecture and cross-compiler explicit per target.
 - Record which interface is actually used in product deployment (SDIO vs USB) and always test that path first.
 - Track SDK generation explicitly because several command semantics differ between 1.x and 2.x.

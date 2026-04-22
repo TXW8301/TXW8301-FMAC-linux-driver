@@ -5,6 +5,9 @@
 **Interface:** SDIO (TF-card slot → AH module dev board v1.6)  
 **Date completed:** 2026-04-21
 
+<img src="assets/XM_IVG_G5F_OpenIPC_TAIXIN-AH-Rx00P_EVB_V1.7.jpg" width="100%" style="max-width: 100%; height: auto;">
+<p><em>XM IVG G5F with OpenIPC Firmware connected with TinXin TXW8301 using SDIO</em></p>
+
 ---
 
 ## 1. Target Platform
@@ -346,13 +349,11 @@ With `hg0` up and the module running AP mode:
 
 | File | Role |
 |------|------|
-| `ko/hgicf.ko` | Built module, vermagic `4.9.37 mod_unload ARMv7 p2v8` |
-| `hgicf.conf` | Driver config template; deploy to `/etc/hgicf.conf` |
-| `hgic_fmac/core.c` | Module init, firmware download, config load, module params |
-| `utils/if_sdio.c` | SDIO bus transport; directly accesses `mmc_host`/`mmc_card` structs |
+| [`ko/hgicf.ko`](../../../ko/hgicf.ko) | Built module, vermagic `4.9.37 mod_unload ARMv7 p2v8` |
+| [`hgicf.conf`](../../../hgicf.conf) | Driver config template; deploy to `/etc/hgicf.conf` |
+| [`hgic_fmac/core.c`](../../../hgic_fmac/core.c) | Module init, firmware download, config load, module params |
+| [`utils/if_sdio.c`](../../../utils/if_sdio.c) | SDIO bus transport; directly accesses `mmc_host`/`mmc_card` structs |
 | `kernel-trees/4.9.84-arm/` | Patched vanilla tree — **do not use for camera builds** |
 | `logs/build-4.9.84-arm.log` | Build log from patched tree (reference only) |
 | `logs/hgicf-5.10.61-arm.ko` | Module built against 5.10.61 (vermagic mismatch for camera) |
-| `doc/openipc_plan.md` | Plan for Buildroot/OpenIPC firmware integration |
 | `Firmware and Utilities/AH-EVB-firmware/txw8301_v2.4.1.5-40938_2026.3.5_default-SDIO-SLEEP.bin` | Firmware binary → `/lib/firmware/hgicf.bin` |
-| `~/openipc/openipc-firmware/output/build/linux-custom/` | **Correct** 4.9.37 kernel source for camera builds |

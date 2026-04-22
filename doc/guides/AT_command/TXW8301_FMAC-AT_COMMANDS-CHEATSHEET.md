@@ -17,7 +17,10 @@ Each terminal tool behaves differently:
 | `minicom` | `\r` | sometimes | Press **Ctrl-A → U** inside minicom to toggle "Add LF"; **Ctrl-A → E** for local echo |
 | `screen` | `\r` | sometimes | Inside screen: **Ctrl-A → `:defcr on`** |
 
-**Recommended: `picocom`** — simplest, no menu config needed:
+<img src="assets/vs_code_serial_terminal.jpg" alt="VS Code + Microsoft Serial Terminal extension in action" width="790">
+
+> [!TIP]
+> **Recommended: `VS Code + Serial Monitor` (see above screen shot) or `picocom`** — simplest, no menu config needed:
 
 ```bash
 sudo apt install picocom

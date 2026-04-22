@@ -227,6 +227,11 @@ Expected:
 `state UNKNOWN` is normal for SDIO Wi-Fi before association. `LOWER_UP` confirms the SDIO
 link to the module is active.
 
+### 6.6 Renew DHCP lease manually for `hg0`
+```
+udhcpc -i hg0
+```
+
 ---
 
 ## 7. Confirmed Working State

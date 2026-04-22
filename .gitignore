@@ -1,5 +1,13 @@
 # Build artifacts
 *.o
+
+# test_app compiled binaries
+tools/test_app/hgota
+tools/test_app/libnetat
+tools/test_app/hgicf
+tools/test_app/hgpriv
+tools/test_app/hgics
+tools/test_app/bin/
 *.ko
 *.mod
 *.mod.c

@@ -14,7 +14,8 @@
  *   4. hgota.c calls libota_query_config / libota_sta_config /
  *      libota_update_config which are defined in libota.c but not declared
  *      in the vendor libota.h.
- *   5. GCC 14 promotes -Wincompatible-pointer-types and
+ *   5. hgota.c sscanf calls use wrong format specifiers (needs hh modifier).
+ *   6. GCC 14 promotes -Wincompatible-pointer-types and
  *      -Wimplicit-function-declaration to errors; suppressed via GNUmakefile
  *      OTA_CFLAGS for the affected translation units.
  */

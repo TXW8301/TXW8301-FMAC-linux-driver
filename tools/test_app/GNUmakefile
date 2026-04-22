@@ -25,10 +25,12 @@ include Makefile
 #   -include compat.h             : inject the shim before each TU's own includes
 #   -Wno-incompatible-pointer-types: vendor passes struct pointers where char* expected
 #   -Wno-implicit-function-declaration: vendor calls functions not yet declared
-#     (GCC 14 promotes both of the above from warnings to errors by default)
+#   -Wno-format                   : vendor uses %x instead of %hhx for uint8* in sscanf
+#     (GCC 14 promotes the first two from warnings to errors by default)
 OTA_CFLAGS := -include compat.h \
               -Wno-incompatible-pointer-types \
-              -Wno-implicit-function-declaration
+              -Wno-implicit-function-declaration \
+              -Wno-format
 
 libota.o: libota.c compat.h
 	$(CC) $(CFLAGS) $(OTA_CFLAGS) -c -o $@ $<

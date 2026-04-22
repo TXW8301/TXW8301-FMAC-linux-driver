@@ -349,10 +349,10 @@ With `hg0` up and the module running AP mode:
 
 | File | Role |
 |------|------|
-| [`ko/hgicf.ko`](../../../ko/hgicf.ko) | Built module, vermagic `4.9.37 mod_unload ARMv7 p2v8` |
-| [`hgicf.conf`](../../../hgicf.conf) | Driver config template; deploy to `/etc/hgicf.conf` |
-| [`hgic_fmac/core.c`](../../../hgic_fmac/core.c) | Module init, firmware download, config load, module params |
-| [`utils/if_sdio.c`](../../../utils/if_sdio.c) | SDIO bus transport; directly accesses `mmc_host`/`mmc_card` structs |
+| `ko/hgicf.ko` | Built module, vermagic `4.9.37 mod_unload ARMv7 p2v8` (will only appear after successful built)|
+| [`hgicf.conf`](/Driver/taixin-fmac-linux-driver-v2.2.1-41305/hgicf.conf) | Driver config template; deploy to `/etc/hgicf.conf` |
+| [`hgic_fmac/core.c`](/Driver/taixin-fmac-linux-driver-v2.2.1-41305/hgic_fmac/core.c) | Module init, firmware download, config load, module params |
+| [`utils/if_sdio.c`](/Driver/taixin-fmac-linux-driver-v2.2.1-41305/utils/if_sdio.c) | SDIO bus transport; directly accesses `mmc_host`/`mmc_card` structs |
 | `kernel-trees/4.9.84-arm/` | Patched vanilla tree — **do not use for camera builds** |
 | `logs/build-4.9.84-arm.log` | Build log from patched tree (reference only) |
 | `logs/hgicf-5.10.61-arm.ko` | Module built against 5.10.61 (vermagic mismatch for camera) |

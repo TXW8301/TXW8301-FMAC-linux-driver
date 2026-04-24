@@ -6,7 +6,7 @@ This guide documents the procedure for updating the TXW8301 WNB (bridge) firmwar
 from SDK V1.6 to SDK V2.4 using the XMODEM-over-UART method.
 
 **Required because:** V1.6 and V2.4 are explicitly incompatible
-(confirmed in `Firmware and Utilities/AH-WNB-firmware/changelog.txt`, Ver 35725).
+(confirmed in [AH-WNB-firmware/changelog.txt](https://github.com/TXW8301/firmware-and-utilities/blob/main/AH-WNB-firmware/changelog.txt), Ver 35725).
 
 ---
 
@@ -18,7 +18,7 @@ from SDK V1.6 to SDK V2.4 using the XMODEM-over-UART method.
 | UART port | `/dev/ttyACM0` at 115200 baud |
 | Starting firmware | `hgSDK-v1.6.4.3-31636` |
 | Target firmware | `txw8301_v2.4.1.3-40938_2026.3.5_TAIXIN_WNB.bin` |
-| Firmware location | `Firmware and Utilities/AH-WNB-firmware/` |
+| Firmware location | [AH-WNB-firmware](https://github.com/TXW8301/firmware-and-utilities/tree/main/AH-WNB-firmware) |
 
 ---
 
@@ -39,7 +39,7 @@ The `hgota` tool is usable for future updates once the module is on V2.4.
 
 The tool has compile errors in the vendor source that must be patched before building.
 
-### Patches Applied to `tools/test_app/libota.c`
+### Patches Applied to [`tools/test_app/libota.c`](https://github.com/TXW8301/FMAC-linux-driver/blob/main/taixin-fmac-linux-driver-v2.2.1-41305/tools/test_app/libota.c)
 
 1. Add missing include at top of file:
    ```c
@@ -57,14 +57,14 @@ The tool has compile errors in the vendor source that must be patched before bui
 
 4. Add `(int8 *)` cast on `libota_check_sum()` call (line ~226).
 
-### Patches Applied to `tools/test_app/hgota.c`
+### Patches Applied to [`tools/test_app/hgota.c`](https://github.com/TXW8301/FMAC-linux-driver/blob/main/taixin-fmac-linux-driver-v2.2.1-41305/tools/test_app/hgota.c)
 
 Add missing include:
 ```c
 #include "fwinfo.h"
 ```
 
-### Patch Applied to `tools/test_app/fwinfo.h`
+### Patch Applied to [`tools/test_app/fwinfo.h`](https://github.com/TXW8301/FMAC-linux-driver/blob/main/taixin-fmac-linux-driver-v2.2.1-41305/tools/test_app/fwinfo.h)
 
 Fix typo in declaration (vendor source has `lenght`):
 ```c
@@ -74,7 +74,7 @@ uint32  fwinfo_get_fw_lenght(const uint8 *data, int32 *err_code);
 uint32  fwinfo_get_fw_length(const uint8 *data, int32 *err_code);
 ```
 
-### Patches Applied to `tools/test_app/libota.h`
+### Patches Applied to [`tools/test_app/libota.h`](https://github.com/TXW8301/FMAC-linux-driver/blob/main/taixin-fmac-linux-driver-v2.2.1-41305/tools/test_app/libota.h)
 
 Add missing function declarations:
 ```c
@@ -86,7 +86,10 @@ int libota_update_config(char *sta_mac, struct eth_ota_fwparam *param);
 ### Build
 
 ```bash
+# From TXW8301 workspace root:
 cd Driver/taixin-fmac-linux-driver-v2.2.1-41305/tools/test_app
+# Or from FMAC-linux-driver repo root:
+# cd taixin-fmac-linux-driver-v2.2.1-41305/tools/test_app
 make hgota
 # Binary produced at: tools/test_app/hgota
 ```

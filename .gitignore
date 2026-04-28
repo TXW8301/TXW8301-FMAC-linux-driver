@@ -32,3 +32,4 @@ kernel-trees/
 
 # config file
 hgicf.conf
+*.zip

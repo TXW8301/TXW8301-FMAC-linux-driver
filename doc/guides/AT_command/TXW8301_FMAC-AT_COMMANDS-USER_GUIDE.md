@@ -1,7 +1,7 @@
 # TXW8301 FMAC AT Commands — User Guide
 
 Source: TX_AH_SDK_2.4 / TXW8301_FMAC-v2.4.1.5-40938  
-Driver: taixin-fmac-linux-driver-v2.2.1-41305
+Driver: taixin-fmac-linux-driver
 
 ## How AT Commands Work on Linux
 

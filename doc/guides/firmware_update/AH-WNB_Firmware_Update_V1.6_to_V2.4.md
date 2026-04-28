@@ -39,7 +39,7 @@ The `hgota` tool is usable for future updates once the module is on V2.4.
 
 The tool has compile errors in the vendor source that must be patched before building.
 
-### Patches Applied to [`tools/test_app/libota.c`](https://github.com/TXW8301/FMAC-linux-driver/blob/main/taixin-fmac-linux-driver-v2.2.1-41305/tools/test_app/libota.c)
+### Patches Applied to [`tools/test_app/libota.c`](https://github.com/TXW8301/FMAC-linux-driver/blob/main/taixin-fmac-linux-driver/tools/test_app/libota.c)
 
 1. Add missing include at top of file:
    ```c
@@ -57,14 +57,14 @@ The tool has compile errors in the vendor source that must be patched before bui
 
 4. Add `(int8 *)` cast on `libota_check_sum()` call (line ~226).
 
-### Patches Applied to [`tools/test_app/hgota.c`](https://github.com/TXW8301/FMAC-linux-driver/blob/main/taixin-fmac-linux-driver-v2.2.1-41305/tools/test_app/hgota.c)
+### Patches Applied to [`tools/test_app/hgota.c`](https://github.com/TXW8301/FMAC-linux-driver/blob/main/taixin-fmac-linux-driver/tools/test_app/hgota.c)
 
 Add missing include:
 ```c
 #include "fwinfo.h"
 ```
 
-### Patch Applied to [`tools/test_app/fwinfo.h`](https://github.com/TXW8301/FMAC-linux-driver/blob/main/taixin-fmac-linux-driver-v2.2.1-41305/tools/test_app/fwinfo.h)
+### Patch Applied to [`tools/test_app/fwinfo.h`](https://github.com/TXW8301/FMAC-linux-driver/blob/main/taixin-fmac-linux-driver/tools/test_app/fwinfo.h)
 
 Fix typo in declaration (vendor source has `lenght`):
 ```c
@@ -74,7 +74,7 @@ uint32  fwinfo_get_fw_lenght(const uint8 *data, int32 *err_code);
 uint32  fwinfo_get_fw_length(const uint8 *data, int32 *err_code);
 ```
 
-### Patches Applied to [`tools/test_app/libota.h`](https://github.com/TXW8301/FMAC-linux-driver/blob/main/taixin-fmac-linux-driver-v2.2.1-41305/tools/test_app/libota.h)
+### Patches Applied to [`tools/test_app/libota.h`](https://github.com/TXW8301/FMAC-linux-driver/blob/main/taixin-fmac-linux-driver/tools/test_app/libota.h)
 
 Add missing function declarations:
 ```c
@@ -87,9 +87,9 @@ int libota_update_config(char *sta_mac, struct eth_ota_fwparam *param);
 
 ```bash
 # From TXW8301 workspace root:
-cd Driver/taixin-fmac-linux-driver-v2.2.1-41305/tools/test_app
+cd Driver/taixin-fmac-linux-driver/tools/test_app
 # Or from FMAC-linux-driver repo root:
-# cd taixin-fmac-linux-driver-v2.2.1-41305/tools/test_app
+# cd taixin-fmac-linux-driver/tools/test_app
 make hgota
 # Binary produced at: tools/test_app/hgota
 ```

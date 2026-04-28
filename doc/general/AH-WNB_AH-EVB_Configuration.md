@@ -44,7 +44,7 @@ AT+GET_CHAN
 
 ## AH-EVB (FMAC STA) Configuration
 
-Driver config file: `Driver/taixin-fmac-linux-driver-v2.2.1-41305/hgicf.conf`
+Driver config file: `Driver/taixin-fmac-linux-driver/hgicf.conf`
 
 Deployed to camera at: `/etc/hgicf.conf`
 
@@ -92,7 +92,7 @@ dhcpc=1
 SCP is not available on OpenIPC. Use pipe over SSH:
 
 ```bash
-cat Driver/taixin-fmac-linux-driver-v2.2.1-41305/hgicf.conf | \
+cat Driver/taixin-fmac-linux-driver/hgicf.conf | \
   ssh root@<camera_eth_ip> "cat > /etc/hgicf.conf"
 ```
 

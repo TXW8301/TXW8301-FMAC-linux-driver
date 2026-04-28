@@ -1,4 +1,4 @@
-# TXW8301 FMAC Linux Driver (taixin-fmac-linux-driver-v2.2.1-41305)
+# TXW8301 FMAC Linux Driver (taixin-fmac-linux-driver)
 
 This repository contains the TXW8301 FullMAC Linux driver stack and helper tools.
 

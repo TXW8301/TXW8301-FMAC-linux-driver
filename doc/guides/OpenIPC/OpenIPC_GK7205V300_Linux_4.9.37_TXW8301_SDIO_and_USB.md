@@ -1,9 +1,10 @@
-# TXW8301 FMAC Driver — OpenIPC GK7205V300 SDIO Bringup
+# TXW8301 FMAC Driver — OpenIPC GK7205V300 SDIO and USB Bringup
 
 **Driver package:** `taixin-fmac-linux-driver-v2.2.1-41305` (SVN 41305)  
 **Target board:** Goke GK7205V300 IP camera running OpenIPC  
-**Interface:** SDIO (TF-card slot → AH module dev board v1.6)  
-**Date completed:** 2026-04-21
+**Interfaces covered:** SDIO (TF-card slot → EVB) · USB (J3 header → EVB)  
+**SDIO date completed:** 2026-04-21  
+**USB date completed:** 2026-04-28
 
 <img src="assets/XM_IVG_G5F_OpenIPC_TAIXIN-AH-Rx00P_EVB_V1.7.jpg" width="100%" style="max-width: 100%; height: auto;">
 <p><em>XM IVG G5F with OpenIPC Firmware connected with TinXin TXW8301 using SDIO</em></p>
@@ -20,10 +21,13 @@
 | Kernel config | non-SMP, non-PREEMPT, ARMv7, p2v8 |
 | Vermagic string | `4.9.37 mod_unload ARMv7 p2v8` |
 | OS | OpenIPC (Buildroot 2024.02.10-g763d9f3) |
-| AH module | TXW8301 (TX-AH-Rx00P) on dev board v1.6 |
+| AH module | TXW8301 (TX-AH-Rx00P) on EVB TAIXIN-AH-Rx00P_EVB_V1.7 |
 | SDIO bus | `mmc0` / `10010000.sdhci` |
 | SDIO device ID | `vendor=0xa012, device=0x4002, class=0x07` |
 | SDIO modalias | `sdio:c07vA012d4002` |
+| USB bus | xhci-hcd (USB1, full-speed 12 Mbps) |
+| USB device ID | `idVendor=0xa012, idProduct=0x4002` |
+| USB connection | Camera J3 header → EVB USB port via jumper wires |
 
 ---
 
@@ -58,7 +62,7 @@ Three kernel trees were investigated:
 ## 3. Build Command
 
 ```bash
-cd ~/TXW8301/Driver/taixin-fmac-linux-driver-v2.2.1-41305
+cd ~/TXW8301/Driver/taixin-fmac-linux-driver
 
 make fmac_sdio \
   ARCH=arm \
@@ -297,6 +301,288 @@ the event file.
 
 ---
 
+## Part B — USB Interface
+
+The sections below cover using the TXW8301 over **USB** instead of SDIO. The same
+GK7205V300 camera and driver package are used, but the EVB must be flashed with
+USB firmware and a USB-variant kernel module must be built.
+
+---
+
+## B1. USB Firmware — Build and Flash to EVB
+
+The EVB ships with SDIO firmware by default. USB firmware must be built from the SDK
+and flashed to the EVB's NOR flash via `AT+FWUPG` over its UART.
+
+### B1.1 Modify project config for USB
+
+Edit `SDK/TX_AH_SDK_2.4/FMAC/TXW8301_FMAC-v2.4.1.5-40938/project/project_config.h`:
+
+```c
+//#define MACBUS_SDIO
+#define MACBUS_USB
+//#define MACBUS_UART
+```
+
+No `USB_PID` override is needed — the firmware default (`0x4002`) already matches
+the driver's USB match table.
+
+### B1.2 Build USB firmware
+
+Use the build script in the FMAC project directory — it handles the `project_config.h`
+switch and `Obj/` cleanup automatically without touching the baseline file:
+
+```bash
+cd ~/TXW8301/SDK/TX_AH_SDK_2.4/FMAC/TXW8301_FMAC-v2.4.1.5-40938
+./build_fmac_firmware.sh -usb
+```
+
+The script:
+1. Removes stale `Obj/` (handles root-owned files from Docker via `sudo`)
+2. Creates a patched `project_config.h` in a temp file (baseline never modified)
+3. Mounts the patched config into the Docker container and runs the build
+4. Renames the output binary with the bus suffix
+
+Output:
+```
+SDK/TX_AH_SDK_2.4/FMAC/TXW8301_FMAC-v2.4.1.5-40938/project/build/<YYYYMMDD-HHMM>/txw8301_v2.4.1.5-40938_<date>_usb.bin
+```
+
+Boot log confirm string (A10/A11 UART at 115200): `[45]USB bus init done`
+
+> **Manual build (reference):** If building without the script, edit
+> `project/project_config.h` to comment out `MACBUS_SDIO` and uncomment `MACBUS_USB`,
+> then run `sudo rm -rf project/Obj/` followed by the Docker command from the SDIO build
+> section. No `USB_PID` override is required.
+
+### B1.3 Flash USB firmware to EVB via xmodem
+
+The EVB's **A12/A13** pins are the SDIO-firmware debug/AT UART (115200 baud). Even after
+flashing USB firmware, `AT+FWUPG` still works via A12/A13 because the bootloader always
+starts on that UART.
+
+**A10/A11** become the USB firmware debug UART once USB firmware is running.
+
+```bash
+# From workspace root, using lrzsz sx:
+stty -F /dev/ttyUSB0 115200 cs8 -cstopb -parenb raw -echo && \
+{ echo -e 'AT+FWUPG\r'; sleep 6; \
+  sx -b SDK/TX_AH_SDK_2.4/FMAC/TXW8301_FMAC-v2.4.1.5-40938/project/build/<stamp>/<firmware>.bin; \
+} > /dev/ttyUSB0 < /dev/ttyUSB0
+```
+
+`sleep 6` is the minimum delay for the EVB to enter xmodem receive mode after `AT+FWUPG`.
+Use `sleep 8` if retries appear.
+
+Successful transfer output:
+```
+Bytes Sent: 373888   BPS:5686
+Transfer complete
+```
+
+After transfer the EVB reboots automatically. Power-cycle it and open A10/A11 at 115200
+to confirm USB firmware:
+```
+** hgSDK-v2.4.1.5-40938, app-0, build time:Apr 27 2026 17:13:46 **
+[45]USB bus init done
+```
+
+---
+
+## B2. USB Driver Build
+
+Build the USB variant of the kernel module using the `fmac_usb` make target:
+
+```bash
+cd ~/TXW8301/Driver/taixin-fmac-linux-driver
+
+make fmac_usb \
+  ARCH=arm \
+  COMPILER=arm-linux-gnueabihf- \
+  LINUX_KERNEL_PATH=$HOME/openipc/openipc-firmware/output/build/linux-custom \
+  CONFIG_HGIC_AH=y \
+  CFLAGS_MODULE="-march=armv7-a"
+```
+
+Output: `ko/hgicf.ko` (built with `CONFIG_HGIC_USB=y`)
+
+Verify USB match table is compiled in:
+```bash
+modinfo ko/hgicf.ko | grep -E 'alias|vermagic'
+# alias: usb:v A012p4002d*...
+# vermagic: 4.9.37 mod_unload ARMv7 p2v8
+```
+
+---
+
+## B3. USB Firmware File (Camera Side)
+
+The same `/lib/firmware/hgicf.bin` path is used. Replace the SDIO firmware with the
+USB firmware built in B1:
+
+| Item | Value |
+|------|-------|
+| Source file | `SDK/TX_AH_SDK_2.4/FMAC/TXW8301_FMAC-v2.4.1.5-40938/project/build/<stamp>/txw8301_v2.4.1.5-40938_<date>_.bin` |
+| Deploy path on camera | `/lib/firmware/hgicf.bin` |
+| Firmware version | `2.4.1.5`, SVN `40938` |
+| USB VID:PID | `0xa012:0x4002` |
+
+The driver downloads this firmware to the EVB over USB at `insmod` time (same boot-download
+sequence as SDIO).
+
+---
+
+## B4. Physical Wiring — IVG-G5F J3 Header to EVB USB
+
+Connect the EVB's USB port to the camera's J3 connector using a USB-A OTG adapter
+broken out to jumper wires.
+
+| USB Signal | USB-A colour (typical) | IVG-G5F J3 pin | Label in docs |
+|-----------|----------------------|----------------|---------------|
+| VBUS (5V) | Red | — | Powered by EVB's own supply |
+| GND | Black | Pin 12 (GND) | GND |
+| D− | White | Pin 11 | `WIFI_DP` ⚠️ |
+| D+ | Green | Pin 9 | `WIFI_DN` ⚠️ |
+
+> **⚠️ IVG-G5F J3 label mismatch:** The schematic labels J3 pin 9 as `WIFI_DN` (negative)
+> and pin 11 as `WIFI_DP` (positive). This is **electrically reversed** — pin 9 is D+ and
+> pin 11 is D−. Connect accordingly (green → pin 9, white → pin 11).
+>
+> Connecting with the labels taken at face value (white to pin 9, green to pin 11) results
+> in the host detecting a low-speed device and all transfers failing with `error -71`.
+
+**No `devmem` or GPIO init required.** The GK7205V300 xhci USB host controller is active
+at boot. The `devmem 0x100C0080 32 0x530 && gpio clear 7` sequence seen in some ATBM6012B-X
+WiFi guides controls a chip-enable GPIO wired to that chip only — it has no effect on
+TXW8301 USB enumeration.
+
+---
+
+## B5. USB Deploy and Load Procedure
+
+### B5.1 Physical connection order
+
+1. Ensure EVB is powered and has booted USB firmware (A10/A11 shows `USB bus init done`).
+2. Connect EVB USB to camera J3 header.
+3. The camera's USB host will detect the device immediately.
+
+Unlike SDIO, the camera does not need to be rebooted — the driver can be loaded at any
+time after the EVB is connected.
+
+### B5.2 Copy files to camera
+
+```bash
+cd ~/TXW8301/Driver/taixin-fmac-linux-driver
+
+# Copy USB kernel module
+cat ko/hgicf.ko | ssh root@<camera_ip> "cat > /tmp/hgicf_usb.ko"
+
+# Copy USB firmware (replaces any existing SDIO firmware)
+cat SDK/TX_AH_SDK_2.4/FMAC/TXW8301_FMAC-v2.4.1.5-40938/project/build/<stamp>/<firmware>.bin \
+  | ssh root@<camera_ip> "cat > /lib/firmware/hgicf.bin"
+
+# Config (same /etc/hgicf.conf as SDIO — no changes needed)
+```
+
+### B5.3 Load the module
+
+```bash
+ssh root@<camera_ip> "insmod /tmp/hgicf_usb.ko"
+```
+
+Expected dmesg:
+```
+** HUGE-IC WLAN Card Driver(fmac) v2.2.1-41305
+hgic_usb_init:430::Enter, max_pkt_len = 2560
+usbcore: registered new interface driver hgicf
+hgic_usb_init:439::Leave
+leave hgicf_init
+usb 1-1: new full-speed USB device number N using xhci-hcd
+usb 1-1: New USB device found, idVendor=a012, idProduct=4002
+hgicf_rx_fw_event:70::event list is full (max 16), drop old event
+[... event queue drains ...]
+```
+
+The event queue burst after probe is normal — the EVB sends initial configuration events
+which the driver queues. It clears once the driver processes them.
+
+### B5.4 Verify interface
+
+```bash
+ssh root@<camera_ip> "ifconfig hg0"
+```
+
+Expected:
+```
+hg0       Link encap:Ethernet  HWaddr 82:59:13:5E:9C:18
+          BROADCAST MULTICAST  MTU:1500  Metric:1
+          ...
+```
+
+```bash
+ssh root@<camera_ip> "ls /proc/hgicf/"
+# fwevnt  iwpriv  ota  status
+```
+
+### B5.5 Get DHCP
+
+```bash
+ssh root@<camera_ip> "udhcpc -i hg0"
+```
+
+---
+
+## B6. Confirmed Working State (USB)
+
+| Check | Result |
+|-------|--------|
+| `insmod /tmp/hgicf_usb.ko` | exit 0, no crash |
+| dmesg — USB probe | `idVendor=a012, idProduct=4002`, full-speed |
+| dmesg — netdev | `hgicf_create_iface` completes, `hg0` created |
+| `ifconfig hg0` | `HWaddr 82:59:13:5E:9C:18`, BROADCAST MULTICAST |
+| `udhcpc -i hg0` | IP assigned by WNB DHCP |
+| `/proc/hgicf/` | `fwevnt iwpriv ota status` present |
+| EVB boot log (A10/A11) | `USB bus init done` |
+
+---
+
+## B7. USB Known Issues
+
+### B7.1 USB `error -71` / low-speed detection
+
+**Symptom:** dmesg shows `usb 1-1: new low-speed USB device` followed by
+`device descriptor read/64, error -71` repeating indefinitely.  
+**Root cause:** D+ and D− wires are swapped. Low-speed mode is signalled by D− pull-up
+(opposite of full-speed); a swap produces exactly this symptom.  
+**Fix:** Swap the D+ and D− wires at the J3 connector end. See wiring table in B4.
+
+### B7.2 USB enumeration stalls at speed detection (no descriptor)
+
+**Symptom:** `usb 1-1: new full-speed USB device number N using xhci-hcd` appears but no
+`New USB device found` line follows. Device disappears after a few seconds.  
+**Root cause:** Usually a signal integrity issue — D+/D- wire length mismatch causes
+differential skew. Equal-length wires are required.  
+**Fix:** Use jumper wires of equal length for D+ and D−.
+
+### B7.3 EVB enumerates on host PC but not on camera
+
+**Symptom:** `lsusb` on the development PC shows `ID a012:4002` correctly, but the
+same EVB fails to enumerate on the camera.  
+**Root cause:** The J3 connector wiring has D+ and D− reversed relative to what the
+PC's USB-A socket expects. PC USB-A and camera J3 wire differently.  
+**Fix:** Verify wiring against B4 table (camera J3 pin assignments differ from USB-A).
+
+### B7.4 Driver loads but `hg0` not created
+
+**Symptom:** `insmod` succeeds, USB device is detected, but no `hg0` appears and
+dmesg stops after `hgic_usb_init`.  
+**Root cause:** `/etc/hgicf.conf` missing, or EVB still running SDIO firmware
+(USB firmware boots to `USB bus init done`; SDIO firmware boots to `SDIO bus init done`).  
+**Fix:** Check EVB A10/A11 UART boot log for `USB bus init done`. If it shows
+`SDIO bus init done`, the USB firmware flash did not succeed — repeat B1.3.
+
+---
+
 ## 9. Next Steps
 
 ### 9.1 Persistent loading (manual)
@@ -349,11 +635,14 @@ With `hg0` up and the module running AP mode:
 
 | File | Role |
 |------|------|
-| `ko/hgicf.ko` | Built module, vermagic `4.9.37 mod_unload ARMv7 p2v8` (will only appear after successful built)|
-| [`hgicf.conf`](/Driver/taixin-fmac-linux-driver-v2.2.1-41305/hgicf.conf) | Driver config template; deploy to `/etc/hgicf.conf` |
-| [`hgic_fmac/core.c`](/Driver/taixin-fmac-linux-driver-v2.2.1-41305/hgic_fmac/core.c) | Module init, firmware download, config load, module params |
-| [`utils/if_sdio.c`](/Driver/taixin-fmac-linux-driver-v2.2.1-41305/utils/if_sdio.c) | SDIO bus transport; directly accesses `mmc_host`/`mmc_card` structs |
+| `ko/hgicf.ko` | Built module — SDIO variant (`fmac_sdio`) or USB variant (`fmac_usb`); vermagic `4.9.37 mod_unload ARMv7 p2v8` |
+| [`hgicf.conf`](/Driver/taixin-fmac-linux-driver/hgicf.conf) | Driver config template; deploy to `/etc/hgicf.conf` (same for SDIO and USB) |
+| [`hgic_fmac/core.c`](/Driver/taixin-fmac-linux-driver/hgic_fmac/core.c) | Module init, firmware download, config load, module params |
+| [`utils/if_sdio.c`](/Driver/taixin-fmac-linux-driver/utils/if_sdio.c) | SDIO bus transport; directly accesses `mmc_host`/`mmc_card` structs |
+| [`utils/if_usb.c`](/Driver/taixin-fmac-linux-driver/utils/if_usb.c) | USB bus transport; contains `hgic_usb_wdev_ids` match table (`0xa012:0x4002`) |
 | `kernel-trees/4.9.84-arm/` | Patched vanilla tree — **do not use for camera builds** |
 | `logs/build-4.9.84-arm.log` | Build log from patched tree (reference only) |
 | `logs/hgicf-5.10.61-arm.ko` | Module built against 5.10.61 (vermagic mismatch for camera) |
-| `Firmware and Utilities/AH-EVB-firmware/txw8301_v2.4.1.5-40938_2026.3.5_default-SDIO-SLEEP.bin` | Firmware binary → `/lib/firmware/hgicf.bin` |
+| `Firmware and Utilities/AH-EVB-firmware/txw8301_v2.4.1.5-40938_2026.3.5_default-SDIO-SLEEP.bin` | SDIO firmware binary → `/lib/firmware/hgicf.bin` |
+| `SDK/TX_AH_SDK_2.4/FMAC/TXW8301_FMAC-v2.4.1.5-40938/project/project_config.h` | USB firmware build config; set `MACBUS_USB` and `USB_PID 0x4002` |
+| `SDK/TX_AH_SDK_2.4/FMAC/TXW8301_FMAC-v2.4.1.5-40938/project/build/<stamp>/txw8301_v2.4.1.5-40938_<date>_.bin` | Built USB firmware binary → `/lib/firmware/hgicf.bin` |

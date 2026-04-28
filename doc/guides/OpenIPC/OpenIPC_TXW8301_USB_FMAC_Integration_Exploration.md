@@ -113,7 +113,7 @@ Deploy to the OpenIPC camera at `/lib/firmware/hgicf.bin`.
 ### 4.1 Build target
 
 ```bash
-cd ~/TXW8301/Driver/taixin-fmac-linux-driver-v2.2.1-41305
+cd ~/TXW8301/Driver/taixin-fmac-linux-driver
 
 make fmac_usb \
   ARCH=arm \

@@ -46,7 +46,7 @@ Notes:
 
 ## 2) Local Build Workflow (Per Target)
 
-From driver root (`taixin-fmac-linux-driver-v2.2.1-41305`):
+From driver root (`taixin-fmac-linux-driver`):
 
 ```bash
 make clean

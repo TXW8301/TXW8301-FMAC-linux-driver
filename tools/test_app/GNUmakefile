@@ -42,11 +42,14 @@ fwinfo.o: fwinfo.c compat.h
 	$(CC) $(CFLAGS) $(OTA_CFLAGS) -c -o $@ $<
 
 # hgicf.c and hgpriv.c both #include iwpriv.c which has incompatible pointer
-# type issues under GCC 14; suppress the error for these translation units.
-IWPRIV_CFLAGS := -Wno-incompatible-pointer-types
+# type issues under GCC 14.
+# -I. lets the local error.h stub shadow the missing system header on musl libc
+# targets (musl does not ship <error.h>, a GNU glibc extension).
+IWPRIV_CFLAGS := -I. \
+                 -Wno-incompatible-pointer-types
 
-hgicf: hgicf.c
+hgicf: hgicf.c error.h
 	$(CC) $(CFLAGS) $(LDFLAGS) $(IWPRIV_CFLAGS) -o $@ $@.c $(LDLIBS)
 
-hgpriv: hgpriv.c
+hgpriv: hgpriv.c error.h
 	$(CC) $(CFLAGS) $(LDFLAGS) $(IWPRIV_CFLAGS) -o $@ $@.c $(LDLIBS)

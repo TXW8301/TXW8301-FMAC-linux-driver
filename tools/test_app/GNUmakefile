@@ -19,7 +19,19 @@
 # overriding EXEC after the include is too late.)
 override EXEC := hgota libnetat hgicf hgpriv
 
+# Per-toolchain output directory so native and cross builds do not overwrite
+# each other.  'bin/arm-openipc-linux-musleabi-gcc' vs 'bin/cc' etc.
+# The vendor Makefile unconditionally does 'rm -rf bin; mkdir bin' so we
+# shadow its 'all' recipe to redirect output into the subdirectory instead.
+CC_NAME     := $(notdir $(CC))
+BIN_SUBDIR  := bin/$(CC_NAME)
+
 include Makefile
+
+# Override the vendor 'all' install step to use our subdirectory.
+all: $(EXEC)
+	mkdir -p $(BIN_SUBDIR)
+	for i in $(EXEC); do cp -fv $$i $(BIN_SUBDIR)/$$i; done
 
 # Extra flags scoped to OTA object files.
 #   -include compat.h             : inject the shim before each TU's own includes

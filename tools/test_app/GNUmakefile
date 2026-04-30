@@ -39,18 +39,19 @@ all: $(EXEC)
 #   -Wno-implicit-function-declaration: vendor calls functions not yet declared
 #   -Wno-format                   : vendor uses %x instead of %hhx for uint8* in sscanf
 #     (GCC 14 promotes the first two from warnings to errors by default)
-OTA_CFLAGS := -include compat.h \
+OTA_CFLAGS := -I. \
+              -include compat.h \
               -Wno-incompatible-pointer-types \
               -Wno-implicit-function-declaration \
               -Wno-format
 
-libota.o: libota.c compat.h
+libota.o: libota.c compat.h error.h
 	$(CC) $(CFLAGS) $(OTA_CFLAGS) -c -o $@ $<
 
-hgota.o: hgota.c compat.h
+hgota.o: hgota.c compat.h error.h
 	$(CC) $(CFLAGS) $(OTA_CFLAGS) -c -o $@ $<
 
-fwinfo.o: fwinfo.c compat.h
+fwinfo.o: fwinfo.c compat.h error.h
 	$(CC) $(CFLAGS) $(OTA_CFLAGS) -c -o $@ $<
 
 # hgicf.c and hgpriv.c both #include iwpriv.c which has incompatible pointer
@@ -65,3 +66,6 @@ hgicf: hgicf.c error.h
 
 hgpriv: hgpriv.c error.h
 	$(CC) $(CFLAGS) $(LDFLAGS) $(IWPRIV_CFLAGS) -o $@ $@.c $(LDLIBS)
+
+libnetat: libnetat.c error.h
+	$(CC) $(CFLAGS) $(LDFLAGS) -I. -o $@ $@.c $(LDLIBS)

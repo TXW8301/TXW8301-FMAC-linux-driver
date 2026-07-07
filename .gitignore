@@ -1,0 +1,39 @@
+# Build artifacts
+*.o
+
+# test_app compiled binaries
+tools/test_app/hgota
+tools/test_app/libnetat
+tools/test_app/hgicf
+tools/test_app/hgpriv
+tools/test_app/hgics
+tools/test_app/libnetat_cli
+tools/test_app/bin/
+*.ko
+*.mod
+*.mod.c
+*.cmd
+*.symvers
+*.order
+*.markers
+.tmp_versions/
+ko/
+Module.symvers
+modules.order
+
+# Build logs
+logs/
+
+# Downloaded kernel trees
+kernel-trees/
+
+# Downloaded / symlinked userspace toolchains
+toolchains/
+
+# Editor
+*.swp
+*~
+
+# config file
+hgicf.conf
+*.zip

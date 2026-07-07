@@ -96,11 +96,7 @@ const struct sdio_device_id_t hgic_sdio_wdev_ids[] = {
 #define HOST_SPI_CRC(func, crc) (func)->card->host->use_spi_crc=crc
 
 //#define mmc_card_disable_cd(c)  (1)
-#ifdef mmc_card_disable_cd
 #define hgic_card_disable_cd(func)     mmc_card_disable_cd((func)->card)
-#else
-#define hgic_card_disable_cd(func)     (0)
-#endif
 #define hgic_card_set_highspeed(func)  mmc_card_set_highspeed((func)->card)
 #define hgic_host_is_spi(func)         mmc_host_is_spi((func)->card->host)
 #define hgic_card_cccr_widebus(func)   ((func)->card->cccr.low_speed && !(func)->card->cccr.wide_bus)

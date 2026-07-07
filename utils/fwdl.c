@@ -266,12 +266,14 @@ int hgic_bootdl_cmd_enter(struct hgic_bootdl *hg)
 {
     struct sk_buff *skb  = NULL;
     struct hgic_bootdl_cmd_hdr *cmd_hdr = NULL;
+    const char *bootkey = BOOT_CMD_KEY;
     int ret = 0;
 
     skb = hgic_bootdl_alloc_cmd_skb(hg, HG_BOOTDL_CMD_ENTER);
     if (skb) {
         cmd_hdr = (struct hgic_bootdl_cmd_hdr *)skb->data;
-        memcpy((void *)cmd_hdr->addr, (void *)BOOT_CMD_KEY, BOOT_CMD_KEY_SIZE);
+        memcpy((void *)cmd_hdr->addr, bootkey, 4);
+        memcpy((void *)cmd_hdr->len, bootkey+4, 4);
         cmd_hdr->check = hgic_bootdl_cmd_check_val(hg->checksum_mode, (u8 *)&cmd_hdr->cmd, 11);
     } else {
         hgic_err("malloc skb failed!\n");

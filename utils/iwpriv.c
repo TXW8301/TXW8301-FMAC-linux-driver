@@ -221,13 +221,13 @@ static int hgic_iwpriv_set_paired_stas(struct hgic_fwctrl *ctrl, u8 ifidx, char 
 
 static int hgic_iwpriv_set_pairing(struct hgic_fwctrl *ctrl, u8 ifidx, char *data, u32 count)
 {
-    u32 number = 0;
-
+    u32 argcnt = 0;
+    s32 vals[4] = { 0, 0, 0, 0};
     if (data == NULL) {
         return -EINVAL;
     }
-    number = simple_strtol(data, 0, 10);
-    return hgic_fwctrl_set_pairing(ctrl, ifidx, number);
+    hgic_pick_values(s32, data, vals, 4);
+    return hgic_fwctrl_set_pairing(ctrl, ifidx, vals[0], vals[1], vals[2], vals[3]);
 }
 
 static int hgic_iwpriv_set_beacon_int(struct hgic_fwctrl *ctrl, u8 ifidx, char *data, u32 count)
@@ -1016,6 +1016,39 @@ static int hgic_iwpriv_set_start_assoc(struct hgic_fwctrl *ctrl, u8 ifidx, char 
     int val = simple_strtol(data, 0, 10);
     return hgic_fwctrl_set_start_assoc(ctrl, ifidx, val);
 }
+static int hgic_iwpriv_set_rmesh_devmax(struct hgic_fwctrl *ctrl, u8 ifidx, char *data, u32 count)
+{
+    int val = simple_strtol(data, 0, 10);
+    return hgic_fwctrl_set_rmesh_devmax(ctrl, ifidx, val);
+}
+static int hgic_iwpriv_set_rmesh_aid(struct hgic_fwctrl *ctrl, u8 ifidx, char *data, u32 count)
+{
+    int val = simple_strtol(data, 0, 10);
+    return hgic_fwctrl_set_rmesh_aid(ctrl, ifidx, val);
+}
+static int hgic_iwpriv_set_rmesh_device(struct hgic_fwctrl *ctrl, u8 ifidx, char *data, u32 count)
+{
+    u8  aid = (u8)data[0];
+    u8 *mac = (u8 *)(data+1);
+    return hgic_fwctrl_set_rmesh_device(ctrl, ifidx, aid, mac);
+}
+static int hgic_iwpriv_set_rmesh_notfw(struct hgic_fwctrl *ctrl, u8 ifidx, char *data, u32 count)
+{
+    int val = simple_strtol(data, 0, 10);
+    return hgic_fwctrl_set_rmesh_notfw(ctrl, ifidx, val);
+}
+static int hgic_iwpriv_set_rmesh_rssimin(struct hgic_fwctrl *ctrl, u8 ifidx, char *data, u32 count)
+{
+    int val = simple_strtol(data, 0, 10);
+    return hgic_fwctrl_set_rmesh_rssimin(ctrl, ifidx, val);
+}
+static int hgic_iwpriv_set_rmesh_meshid(struct hgic_fwctrl *ctrl, u8 ifidx, char *data, u32 count)
+{
+    u8 mac[6];
+    hgic_pick_macaddr(data, mac);
+    hgic_err("set rmesh meshid : %pM\r\n", mac);
+    return hgic_fwctrl_set_rmesh_meshid(ctrl, ifidx, mac);
+}
 
 static struct fwctrl_cfgset hgpriv_sets[] = {
     {"country_region",              hgic_iwpriv_set_countryregion},
@@ -1128,6 +1161,12 @@ static struct fwctrl_cfgset hgpriv_sets[] = {
     {"bss_disable",                 hgic_iwpriv_set_bss_disabled},
     {"kick_assoc",                  hgic_iwpriv_set_kick_assoc},
     {"start_assoc",                 hgic_iwpriv_set_start_assoc},
+    {"rmesh_devmax",                hgic_iwpriv_set_rmesh_devmax},
+    {"rmesh_aid",                   hgic_iwpriv_set_rmesh_aid},
+    {"rmesh_device",                hgic_iwpriv_set_rmesh_device},
+    {"rmesh_notfw",                 hgic_iwpriv_set_rmesh_notfw},
+    {"rmesh_rssimin",               hgic_iwpriv_set_rmesh_rssimin},
+    {"rmesh_meshid",                hgic_iwpriv_set_rmesh_meshid},
     {NULL,}
 };
 
@@ -1714,6 +1753,49 @@ static int hgic_iwpriv_get_link_quality(struct hgic_fwctrl *ctrl, u8 ifidx, stru
     kfree(print_buf);
     return (0);
 }
+static int hgic_iwpriv_get_rmesh_device(struct hgic_fwctrl *ctrl, u8 ifidx, struct iwreq *wrqin)
+{
+    int count = 0;
+    int len = 0;
+    int format = 0;
+    char *ptr;
+    char *buf = kzalloc(4096, GFP_ATOMIC);
+    char *print_buf = kzalloc(4096, GFP_ATOMIC);
+    struct hgic_rmesh_device *dev = (struct hgic_rmesh_device *)buf;
+
+    if (buf == NULL || print_buf == NULL) {
+        if (buf) { kfree(buf); }
+        if (print_buf) { kfree(print_buf); }
+        return -ENOMEM;
+    }
+
+    hgic_copyfrom_iwreq(wrqin, buf, 64);
+    ptr = strchr(buf, '=');
+    if (ptr) {
+        format = simple_strtol(ptr + 1, 0, 10);
+    }
+
+    count = hgic_fwctrl_get_rmesh_device(ctrl, ifidx, (struct hgic_rmesh_device *)buf, (4096 / sizeof(struct hgic_rmesh_device)));
+    hgic_err("rmesh dev list count=%d\r\n", count);
+    if (format == 1) {
+        hgic_copyto_iwreq(wrqin, buf, count * sizeof(struct hgic_rmesh_device));
+    } else {
+        if (count > 0) {
+            len += sprintf(print_buf, "%d dev:\r\n", count);
+            while (count-- > 0 && (len + 80) < 8192) {
+                len += sprintf(print_buf + len, "aid:%d, %pM\r\n", dev->aid, dev->addr);
+                dev++;
+            }
+        }
+        hgic_err("dev list len=%d\r\n", len);
+        hgic_copyto_iwreq(wrqin, print_buf, len);
+    }
+
+    kfree(buf);
+    kfree(print_buf);
+    return (0);
+}
+
 
 static struct fwctrl_cfgget hgpriv_gets[] = {
     {"mode",                        hgic_iwpriv_get_mode},
@@ -1753,6 +1835,7 @@ static struct fwctrl_cfgget hgpriv_gets[] = {
     {"signal",                      hgic_iwpriv_get_signal},
     {"tx_bitrate",                  hgic_iwpriv_get_tx_bitrate},
     {"link_quality",                hgic_iwpriv_get_link_quality},
+    {"rmesh_device",                hgic_iwpriv_get_rmesh_device},
     {NULL,}
 };
 

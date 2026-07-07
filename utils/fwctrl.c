@@ -430,9 +430,14 @@ int hgic_fwctrl_set_paired_stas(struct hgic_fwctrl *ctrl, u8 ifidx, u8 *paired_s
     return hgic_fwctrl_set_bytes(ctrl, ifidx, HGIC_CMD_SET_PAIRED_STATIONS, paired_stas, len);
 }
 
-int hgic_fwctrl_set_pairing(struct hgic_fwctrl *ctrl, u8 ifidx, u32 pair_number)
+int hgic_fwctrl_set_pairing(struct hgic_fwctrl *ctrl, u8 ifidx, u32 pair_number, u8 ngo, u8 multi, s8 role)
 {
-    return hgic_fwctrl_set_int_val(ctrl, ifidx, HGIC_CMD_PAIRING, pair_number);
+    u8 val[4+3];
+    put_unaligned_le32(pair_number, val);
+    val[4] = ngo;
+    val[5] = multi;
+    val[6] = role;
+    return hgic_fwctrl_set_bytes(ctrl, ifidx, HGIC_CMD_PAIRING, val, 7);
 }
 
 int hgic_fwctrl_open_dev(struct hgic_fwctrl *ctrl, u8 ifidx)
@@ -1286,5 +1291,36 @@ int hgic_fwctrl_set_kick_assoc(struct hgic_fwctrl *ctrl, u8 ifidx, u32 enable)
 int hgic_fwctrl_set_start_assoc(struct hgic_fwctrl *ctrl, u8 ifidx, u32 start)
 {
     return hgic_fwctrl_set_int_val(ctrl, ifidx, HGIC_CMD_START_ASSOC, start);
+}
+int hgic_fwctrl_set_rmesh_devmax(struct hgic_fwctrl *ctrl, u8 ifidx, u8 devmax)
+{
+    return hgic_fwctrl_set_int_val(ctrl, ifidx, HGIC_CMD_SET_RMESH_DEVMAX, devmax);
+}
+int hgic_fwctrl_set_rmesh_aid(struct hgic_fwctrl *ctrl, u8 ifidx, u8 aid)
+{
+    return hgic_fwctrl_set_int_val(ctrl, ifidx, HGIC_CMD_SET_RMESH_AID, aid);
+}
+int hgic_fwctrl_set_rmesh_device(struct hgic_fwctrl *ctrl, u8 ifidx, u8 aid, u8 *mac)
+{
+    struct hgic_rmesh_device dev;
+    dev.aid = aid;
+    memcpy(dev.addr, mac, 6);
+    return hgic_fwctrl_set_bytes(ctrl, ifidx, HGIC_CMD_SET_RMESH_DEVICE, (u8 *)&dev, 7);
+}
+int hgic_fwctrl_set_rmesh_notfw(struct hgic_fwctrl *ctrl, u8 ifidx, u8 not)
+{
+    return hgic_fwctrl_set_int_val(ctrl, ifidx, HGIC_CMD_SET_RMESH_NOTFW, not);
+}
+int hgic_fwctrl_set_rmesh_rssimin(struct hgic_fwctrl *ctrl, u8 ifidx, s8 rssi_min)
+{
+    return hgic_fwctrl_set_int_val(ctrl, ifidx, HGIC_CMD_SET_RMESH_RSSIMIN, rssi_min);
+}
+int hgic_fwctrl_get_rmesh_device(struct hgic_fwctrl *ctrl, u8 ifidx, struct hgic_rmesh_device *dev, u32 cnt)
+{
+    return hgic_fwctrl_get_bytes(ctrl, ifidx, HGIC_CMD_SET_RMESH_DEVICE, (u8 *)dev, cnt*sizeof(struct hgic_rmesh_device));
+}
+int hgic_fwctrl_set_rmesh_meshid(struct hgic_fwctrl *ctrl, u8 ifidx, u8 *meshid)
+{
+    return hgic_fwctrl_set_bytes(ctrl, ifidx, HGIC_CMD_GET_RMESH_MESHID, meshid, 6);
 }
 

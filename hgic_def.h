@@ -210,7 +210,7 @@ struct hgic_bus {
 #define ALLOC_NETDEV_MQS(size,name,setup,txqs,rxqs) alloc_netdev_mqs(size,name,setup,txqs,rxqs)
 #endif
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4,19,42)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4,14,0)
 #define _KERNEL_READ(fp, buff, size) ({ \
             ssize_t __ret__ = 0; \
             unsigned long long offset = 0;\
@@ -255,7 +255,7 @@ struct hgic_bus {
 #define IEEE80211_CHAN_PASSIVE_SCAN IEEE80211_CHAN_NO_IR
 #endif
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5,5,0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5,6,0)
 #define proc_ops file_operations
 #define proc_open open
 #define proc_read read
@@ -289,7 +289,7 @@ static inline void *PDE_DATA(const struct inode *inode)
 #endif
 #endif
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,2,0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,9,0)
 #define tasklet_hrtimer hrtimer
 #define tasklet_hrtimer_cancel hrtimer_cancel
 #define tasklet_hrtimer_start hrtimer_start

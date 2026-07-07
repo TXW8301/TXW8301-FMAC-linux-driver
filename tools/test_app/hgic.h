@@ -56,6 +56,11 @@ struct hgic_sta_info {
     signed char rx_snr;
 };
 
+struct hgic_rmesh_device {
+    unsigned char aid;
+    unsigned char addr[6];
+};
+
 //当前链路质量
 struct hgic_link_quality {
     char          bgrssi; //背景噪声
@@ -443,6 +448,20 @@ enum hgic_cmd {
     HGIC_CMD_SET_NAV_LIMIT_MAX      =  195, /* smac/fmac */
     HGIC_CMD_SET_TXPOWER_LEVEL      =  196, /* smac/fmac */
     HGIC_CMD_SET_DISABLE_BSS        =  197, /* fmac */
+    HGIC_CMD_SET_RESP_IND           =  198, /* smac/fmac */
+    HGIC_CMD_SET_SHORT_GI           =  199, /* smac/fmac */
+    HGIC_CMD_SET_NDP_PROBE          =  200, /* smac/fmac */
+    HGIC_CMD_SET_CTRL_RESP_1M       =  201, /* smac/fmac */
+    HGIC_CMD_SET_AMPDU_EN           =  202, /* smac/fmac */
+    HGIC_CMD_SET_DUP_1M             =  203, /* smac/fmac */
+    HGIC_CMD_SET_RMESH_DEVMAX       =  204, /* fmac */
+    HGIC_CMD_SET_RMESH_AID          =  205, /* fmac */
+    HGIC_CMD_SET_RMESH_DEVICE       =  206, /* fmac */
+    HGIC_CMD_SET_RMESH_NOTFW        =  207, /* fmac */
+    HGIC_CMD_SET_RMESH_RSSIMIN      =  208, /* fmac */
+    HGIC_CMD_GET_RMESH_DEVICE       =  209, /* fmac */     
+    HGIC_CMD_GET_RMESH_MESHID       =  210, /* fmac */     
+
 };
 
 enum hgic_event {

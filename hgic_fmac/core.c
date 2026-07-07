@@ -261,15 +261,6 @@ static int hgicf_netif_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
     }
     return hgicf_ioctl(dev, ifr, cmd);
 }
-
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,15,0)
-static int hgicf_netif_siocdevprivate(struct net_device *dev,
-                                      struct ifreq *ifr,
-                                      void __user *data, int cmd)
-{
-    return hgicf_netif_ioctl(dev, ifr, cmd);
-}
-#endif
 #endif
 
 static struct net_device_stats *hgicf_netdev_get_stats(struct net_device *ndev)
@@ -285,11 +276,7 @@ static const struct net_device_ops hgicf_netif_ops = {
     .ndo_start_xmit      = hgicf_netif_xmit,
     .ndo_set_rx_mode     = hgicf_netif_set_multicast_list,
     .ndo_set_mac_address = hgicf_netif_change_mac,
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,15,0)
-    .ndo_siocdevprivate  = hgicf_netif_siocdevprivate,
-#else
     .ndo_do_ioctl        = hgicf_netif_ioctl,
-#endif
     .ndo_get_stats       = hgicf_netdev_get_stats,
 };
 
@@ -300,7 +287,7 @@ static void hgicf_netif_setup(struct net_device *dev)
 #else
     ether_setup(dev);
     dev->netdev_ops = &hgicf_netif_ops;
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4,15,0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4,12,0)
     dev->priv_destructor = free_netdev;
 #else
     dev->destructor = free_netdev;
@@ -722,9 +709,6 @@ static int hgicf_rx_data(void *hgobj, u8 *data, int len)
         case HGIC_HDR_TYPE_EVENT2:
         case HGIC_HDR_TYPE_OTA:
         case HGIC_HDR_TYPE_BOOTDL:
-            if (hg->if_test) {
-                break;
-            }
             hgic_fwctrl_rx(&hg->ctrl, data, len);
             break;
         case HGIC_HDR_TYPE_TEST2:

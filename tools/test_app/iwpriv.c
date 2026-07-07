@@ -1411,4 +1411,35 @@ int hgic_iwpriv_set_start_assoc(char *ifname, int start)
 {
     return hgic_iwpriv_set_int(ifname, "start_assoc", start);
 }
+int hgic_iwpriv_set_rmesh_devmax(char *ifname, int devmax)
+{
+    return hgic_iwpriv_set_int(ifname, "rmesh_devmax",  devmax);
+}
+int hgic_iwpriv_set_rmesh_aid(char *ifname, int aid)
+{
+    return hgic_iwpriv_set_int(ifname, "rmesh_aid",  aid);
+}
+int hgic_iwpriv_set_rmesh_device(char *ifname, int aid, char *mac)
+{
+    struct hgic_rmesh_device dev;
+    dev.aid = aid;
+    memcpy(dev.addr, mac, 6);
+    return hgic_iwpriv_set_bytes(ifname, "rmesh_device",  &dev, 7);
+}
+int hgic_iwpriv_set_rmesh_notfw(char *ifname, int not)
+{
+    return hgic_iwpriv_set_int(ifname, "start_assoc",  not);
+}
+int hgic_iwpriv_set_rmesh_rssimin(char *ifname, int rssi_min)
+{
+    return hgic_iwpriv_set_int(ifname, "rmesh_rssimin",  rssi_min);
+}
+int hgic_iwpriv_get_rmesh_device(char *ifname, struct hgic_rmesh_device *dev_buf, int buf_size)
+{
+    return hgic_iwpriv_get_bytes(ifname, "rmesh_device=1",  (char *)dev_buf, buf_size);
+}
+int hgic_iwpriv_set_rmesh_meshid(char *ifname, int aid, char *meshid)
+{
+    return hgic_iwpriv_set_mac(ifname, "rmesh_meshid",  meshid);
+}
 

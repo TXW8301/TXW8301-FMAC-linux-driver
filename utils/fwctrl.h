@@ -80,7 +80,7 @@ int hgic_fwctrl_set_bgrssi(struct hgic_fwctrl *ctrl, u8 ifidx, u8 bgrssi);
 int hgic_fwctrl_set_chan_list(struct hgic_fwctrl *ctrl, u8 ifidx, u16 *chan_list, u32 cnt);
 int hgic_fwctrl_set_mode(struct hgic_fwctrl *ctrl, u8 ifidx, u8 *mode);
 int hgic_fwctrl_set_paired_stas(struct hgic_fwctrl *ctrl, u8 ifidx, u8 *stas, u32 len);
-int hgic_fwctrl_set_pairing(struct hgic_fwctrl *ctrl, u8 ifidx, u32 start);
+int hgic_fwctrl_set_pairing(struct hgic_fwctrl *ctrl, u8 ifidx, u32 pair_number, u8 ngo, u8 multi, s8 role);
 int hgic_fwctrl_open_dev(struct hgic_fwctrl *ctrl, u8 ifidx);
 int hgic_fwctrl_close_dev(struct hgic_fwctrl *ctrl, u8 ifidx);
 int hgic_fwctrl_set_txpower(struct hgic_fwctrl *ctrl, u8 ifidx, u32 tx_power);
@@ -236,6 +236,13 @@ int hgic_fwctrl_get_link_quality(struct hgic_fwctrl *ctrl, u8 ifidx, struct hgic
 int hgic_fwctrl_set_bss_disabled(struct hgic_fwctrl *ctrl, u8 ifidx, u8 dis, u8 *bssid);
 int hgic_fwctrl_set_kick_assoc(struct hgic_fwctrl *ctrl, u8 ifidx, u32 enable);
 int hgic_fwctrl_set_start_assoc(struct hgic_fwctrl *ctrl, u8 ifidx, u32 start);
+int hgic_fwctrl_set_rmesh_devmax(struct hgic_fwctrl *ctrl, u8 ifidx, u8 devmax);
+int hgic_fwctrl_set_rmesh_aid(struct hgic_fwctrl *ctrl, u8 ifidx, u8 aid);
+int hgic_fwctrl_set_rmesh_device(struct hgic_fwctrl *ctrl, u8 ifidx, u8 aid, u8 *mac);
+int hgic_fwctrl_set_rmesh_notfw(struct hgic_fwctrl *ctrl, u8 ifidx, u8 not);
+int hgic_fwctrl_set_rmesh_rssimin(struct hgic_fwctrl *ctrl, u8 ifidx, s8 rssi_min);
+int hgic_fwctrl_get_rmesh_device(struct hgic_fwctrl *ctrl, u8 ifidx, struct hgic_rmesh_device *dev, u32 cnt);
+int hgic_fwctrl_set_rmesh_meshid(struct hgic_fwctrl *ctrl, u8 ifidx, u8 *meshid);
 
 #endif
 
